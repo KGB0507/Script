@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace Script
@@ -11,29 +7,37 @@ namespace Script
     {
         static void Main(string[] args)
         {
-            int x = 0, y = 0, dx1 = 0, dx2 = 0, dy1 = 0, dy2 = 0, z = 0, j = 0;
-            bool endOfCol1 = false, endOfCol2 = false;
+            foreach (string arg in args)
+            {
+                Console.WriteLine(arg);
+            }
+            int x = 0, y = 0, z = 0;
+            bool laserNecessary = false;
+            bool firstPassage = false;
             //int typeOfJumpers;
-            int numOfNormCryst = 4;
-            const int NUMOFCOLS = 10;
-            const int WIDTHOFCRYST = 900;
-            const int DISTBETWCRYST = 100;
-            const int ALLOWEDH = 20;
-            const int ALLOWEDW = 20;
-            const int H1 = 150;
-            const int H2 = 50;
-            const int HBORDER1 = 0;
-            const int HBORDER2 = 4000;
-            const int WBORDER1 = 0;
-            const int WBORDER2 = 4000;
+            Direction direction = Direction.TOP;
+            int countRows = 0;
+            int countCryst = 0;
+            int currentCryst = 0;
+            string path = args[0] + " " + args[1];
 
             CrystCoord crystCoord;
 
+
             for (int i = 0; i < NUMOFCOLS; i++)
             {
-
+                crystCoord = ReadLineFromFile(countCryst, path);
+                x = crystCoord.x;
+                y = crystCoord.y;
                 Delay(0.3);
-                DateTime dateTime = DateTime.Now;
+                DateTime dateTime1 = DateTime.Now;
+                //going to the start position
+                GoTo(x, y -H1 - ALLOWEDH - H2);
+                y -= H1 + ALLOWEDH + H2;
+                GoTo(x + DX1, y);
+                x += DX1;
+                direction = Direction.TOP;
+                countRows = 0;
                 //typeOfJumpers = ReadJumpers();
                 /*switch (typeOfJumpers)
                 {
@@ -96,26 +100,145 @@ namespace Script
                     default:
                         break;
                 }*/
-                while (!endOfCol1||!endOfCol2)
+
+                firstPassage = true;
+                while (countRows != 3)
                 {
-                    crystCoord = ReadLineFromFile(j);
-                    if (crystCoord.y == HBORDER1)
-                        endOfCol1 = true;
-                    if (crystCoord.y == HBORDER2)
-                        endOfCol2 = true;
-
-
+                    switch (direction)
+                    {
+                        case Direction.TOP:
+                            {
+                                while (y != HBORDER2)
+                                {
+                                    if (firstPassage)
+                                        countCryst++;
+                                    //currentCryst++;
+                                    crystCoord = ReadLineFromFile(currentCryst, path);
+                                    currentCryst++;
+                                    switch (countRows)
+                                    {
+                                        case 0:
+                                            {
+                                                if (crystCoord.f1)
+                                                    laserNecessary = true;
+                                                break;
+                                            }
+                                        case 1:
+                                            {
+                                                if (crystCoord.f2)
+                                                    laserNecessary = true;
+                                                break;
+                                            }
+                                        case 2:
+                                            {
+                                                if (crystCoord.f3)
+                                                    laserNecessary = true;
+                                                break;
+                                            }
+                                    }
+                                    FromDownToTop(x, ref y, laserNecessary);
+                                    laserNecessary = false;
+                                    //y += H1 + ALLOWEDH + H2;
+                                    if (y != HBORDER2)
+                                    {
+                                        GoTo(x, y + DISTBETWCRYST);
+                                        y += DISTBETWCRYST;
+                                    }
+                                    else
+                                    {
+                                        countRows++;
+                                        if (countRows == 1)
+                                            firstPassage = false;
+                                        if (countRows != 3)
+                                        {
+                                            GoTo(x + DX2, y);
+                                            x += DX2;
+                                        }
+                                        direction = Direction.DOWN;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        case Direction.DOWN:
+                            {
+                                while (y != HBORDER1)
+                                {
+                                    currentCryst--;
+                                    crystCoord = ReadLineFromFile(currentCryst, path);
+                                    //x = crystCoord.x;
+                                    //y = crystCoord.y;
+                                    switch(countRows)
+                                    {
+                                        case 0:
+                                            {
+                                                if (crystCoord.f1)
+                                                    laserNecessary = true;
+                                                break;
+                                            }
+                                        case 1:
+                                            {
+                                                if (crystCoord.f2)
+                                                    laserNecessary = true;
+                                                break;
+                                            }
+                                        case 2:
+                                            {
+                                                if (crystCoord.f3)
+                                                    laserNecessary = true;
+                                                break;
+                                            }
+                                    }
+                                    FromTopToDown(x, ref y, laserNecessary);
+                                    //y -= H1 + ALLOWEDH + H2;
+                                    laserNecessary = false;
+                                    if (y != HBORDER1)
+                                    {
+                                        GoTo(x, y - DISTBETWCRYST);
+                                        y -= DISTBETWCRYST;
+                                    }
+                                    else
+                                    {
+                                        countRows++;
+                                        GoTo(x + DX2, y);
+                                        x += DX2;
+                                        direction = Direction.TOP;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                    }
                 }
-                GoTo(x + dx1, y);
-                LaserOn();
-                GoTo(x, y + dy1);
-                LaserOff();
-                GoTo(x + dx2, y);
-                LaserOn();
-                GoTo(x, y + dy2);
-                Console.WriteLine(dateTime);
+                DateTime dateTime2 = DateTime.Now;
+                //Console.WriteLine(dateTime2);
+                if (dateTime2.Subtract(dateTime1).TotalSeconds > 10)
+                    Autofocus();
             }
         }
+
+        //Crystal Parameters:
+        const int NUMOFCOLS = 3;
+        const int DISTBETWCRYST = 100;
+        const int ALLOWEDH = 20;
+        const int ALLOWEDW = 20;
+        const int HBORDER1 = -H1 - ALLOWEDH - H2;
+        const int HBORDER2 = 1200;
+        const int WBORDER1 = 0;
+        const int WBORDER2 = 2900;
+        const int H1 = 150;
+        const int H2 = 30;
+        const int DX1 = 200;
+        const int DX2 = 250;
+        const int WIDTHOFCRYST = 2*DX1 + 3*DX2;
+        //
+        enum Direction
+        {
+            TOP = 1,
+            DOWN = 2
+        };
+
+
         static void LaserOn()
         {
             Console.WriteLine("Laser on");
@@ -128,9 +251,35 @@ namespace Script
         {
             Console.WriteLine($"Goto {x} {y}");
         }
+        static void FromTopToDown(int x, ref int y, bool laserNecessary)
+        {
+            GoTo(x, y - H2);
+            y -= H2;
+            if (laserNecessary == true)
+                LaserOn();
+            GoTo(x, y - ALLOWEDH);
+            y -= ALLOWEDH;
+            if (laserNecessary == true)
+                LaserOff();
+            GoTo(x, y - H1);
+            y -= H1;
+        }
+        static void FromDownToTop(int x, ref int y, bool laserNecessary)
+        {
+            GoTo(x, y + H1);
+            y += H1;
+            if (laserNecessary == true)
+                LaserOn();
+            GoTo(x, y + ALLOWEDH);
+            y += ALLOWEDH;
+            if (laserNecessary == true)
+                LaserOff();
+            GoTo(x, y + H2);
+            y += H2;
+        }
         static void Autofocus()
         {
-            Console.WriteLine("Autofocus");
+            Console.WriteLine("Autofocus 10 s +- 50 mkm z");
         }
         /*static int ReadJumpers()
         {
@@ -152,7 +301,7 @@ namespace Script
         }*/
         static void Delay(double timeInSec)
         {
-            Console.WriteLine($"Delay {timeInSec} c");
+            Console.WriteLine($"Delay {timeInSec} s");
         }
         public struct CrystCoord
         {
@@ -171,9 +320,10 @@ namespace Script
             public bool f2;
             public bool f3;
         };
-        static CrystCoord ReadLineFromFile(int numOfLine)
+        static CrystCoord ReadLineFromFile(int numOfLine, string path)
         {
-            string[] lines = File.ReadAllLines("Crystal Coordinates.txt");
+            int jumperNumber;
+            string[] lines = File.ReadAllLines(path);
             string[] linesSplit = lines[numOfLine].Split('\t');
             string[] jumpers = linesSplit[2].Split('F');
             CrystCoord crystCoord;
@@ -190,79 +340,208 @@ namespace Script
             }
             else
             {
-                try
+                switch (jumpers.Length)
                 {
-                    switch (Int32.Parse(jumpers[1]))
-                    {
-                        case 1:
+                    case 1:
+                        {
+                            crystCoord.f1 = false;
+                            crystCoord.f2 = false;
+                            crystCoord.f3 = false;
+                            break;
+                        }
+                    case 2:
+                        {
+                            if (Int32.TryParse(jumpers[1], out jumperNumber))
                             {
-                                crystCoord.f1 = true;
-                                break;
+                                switch (jumperNumber)
+                                {
+                                    case 1:
+                                        {
+                                            crystCoord.f1 = true;
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            crystCoord.f2 = true;
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            crystCoord.f3 = true;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            crystCoord.f1 = false;
+                                            crystCoord.f2 = false;
+                                            crystCoord.f3 = false;
+                                            break;
+                                        }
+                                }
                             }
-                        case 2:
-                            {
-                                crystCoord.f2 = true;
-                                break;
-                            }
-                        case 3:
-                            {
-                                crystCoord.f3 = true;
-                                break;
-                            }
-                        default:
+                            else
                             {
                                 crystCoord.f1 = false;
                                 crystCoord.f2 = false;
                                 crystCoord.f3 = false;
-                                break;
                             }
-                    }
-                }
-                catch (Exception)
-                {
-                    crystCoord.f1 = false;
-                }
+                            break;
+                        }
+                    case 3:
+                        {
+                            if (Int32.TryParse(jumpers[1], out jumperNumber))
+                            {
+                                switch (jumperNumber)
+                                {
+                                    case 1:
+                                        {
+                                            crystCoord.f1 = true;
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            crystCoord.f2 = true;
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            crystCoord.f3 = true;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            crystCoord.f1 = false;
+                                            crystCoord.f2 = false;
+                                            crystCoord.f3 = false;
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                crystCoord.f1 = false;
+                                crystCoord.f2 = false;
+                                crystCoord.f3 = false;
+                            }
 
-                try
-                {
-                    switch (Int32.Parse(jumpers[2]))
-                    {
-                        case 2:
+                            if (Int32.TryParse(jumpers[2], out jumperNumber))
                             {
-                                crystCoord.f2 = true;
-                                break;
+                                switch (jumperNumber)
+                                {
+                                    case 2:
+                                        {
+                                            crystCoord.f2 = true;
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            crystCoord.f3 = true;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            crystCoord.f2 = false;
+                                            crystCoord.f3 = false;
+                                            break;
+                                        }
+                                }
                             }
-                        case 3:
-                            {
-                                crystCoord.f3 = true;
-                                break;
-                            }
-                        default:
+                            else
                             {
                                 crystCoord.f2 = false;
                                 crystCoord.f3 = false;
-                                break;
                             }
-                    }
-                }
-                catch (Exception)
-                {
-                    crystCoord.f2 = false;
-                }
+                            break;
+                        }
+                    case 4:
+                        {
+                            if (Int32.TryParse(jumpers[1], out jumperNumber))
+                            {
+                                switch (jumperNumber)
+                                {
+                                    case 1:
+                                        {
+                                            crystCoord.f1 = true;
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            crystCoord.f2 = true;
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            crystCoord.f3 = true;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            crystCoord.f1 = false;
+                                            crystCoord.f2 = false;
+                                            crystCoord.f3 = false;
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                crystCoord.f1 = false;
+                                crystCoord.f2 = false;
+                                crystCoord.f3 = false;
+                            }
 
-                try
-                {
-                    if (Int32.Parse(jumpers[2]) == 3)
-                        crystCoord.f3 = true;
-                    else
-                        crystCoord.f3 = false;
-                }
-                catch (Exception)
-                {
-                    crystCoord.f3 = false;
+                            if (Int32.TryParse(jumpers[2], out jumperNumber))
+                            {
+                                switch (jumperNumber)
+                                {
+                                    case 2:
+                                        {
+                                            crystCoord.f2 = true;
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            crystCoord.f3 = true;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            crystCoord.f2 = false;
+                                            crystCoord.f3 = false;
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                crystCoord.f2 = false;
+                                crystCoord.f3 = false;
+                            }
+
+                            if (Int32.TryParse(jumpers[3], out jumperNumber))
+                            {
+                                switch (jumperNumber)
+                                {
+                                    case 3:
+                                        {
+                                            crystCoord.f3 = true;
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            crystCoord.f3 = false;
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                crystCoord.f3 = false;
+                            }
+                            break;
+                        }
                 }
             }
-            
             return crystCoord;
         }
     }
