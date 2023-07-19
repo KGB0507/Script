@@ -7,10 +7,6 @@ namespace Script
     {
         static void Main(string[] args)
         {
-            foreach (string arg in args)
-            {
-                Console.WriteLine(arg);
-            }
             int x = 0, y = 0, z = 0;
             bool laserNecessary = false;
             bool firstPassage = false;
@@ -249,7 +245,7 @@ namespace Script
         }
         static void GoTo(int x, int y)
         {
-            Console.WriteLine($"Goto {x} {y}");
+            Console.WriteLine($"GoTo {x} {y}");
         }
         static void FromTopToDown(int x, ref int y, bool laserNecessary)
         {
