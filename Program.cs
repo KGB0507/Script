@@ -15,13 +15,14 @@ namespace Script
             int countRows = 0;
             int countCryst = 0;
             int currentCryst = 0;
-            string path = args[0] + " " + args[1];
+            string path = args[0];
 
-            CrystCoord crystCoord;
+            (int x, int y, bool f1, bool f2, bool f3) crystCoord;
 
 
             for (int i = 0; i < NUMOFCOLS; i++)
             {
+                Console.WriteLine("Start column");
                 crystCoord = ReadLineFromFile(countCryst, path);
                 x = crystCoord.x;
                 y = crystCoord.y;
@@ -206,12 +207,14 @@ namespace Script
                             }
                     }
                 }
+                Console.WriteLine("Finish column");
                 DateTime dateTime2 = DateTime.Now;
                 //Console.WriteLine(dateTime2);
                 if (dateTime2.Subtract(dateTime1).TotalSeconds > 10)
                     Autofocus();
             }
         }
+
 
         //Crystal Parameters:
         const int NUMOFCOLS = 3;
@@ -299,30 +302,24 @@ namespace Script
         {
             Console.WriteLine($"Delay {timeInSec} s");
         }
+
+        //public (int, int, bool, bool, bool) CrystCoord;
+        /*
         public struct CrystCoord
         {
-            public CrystCoord(int x = 0, int y = 0, bool f1 = false, bool f2 = false, bool f3 = false)
-            {
-                this.x = x;
-                this.y = y;
-                this.f1 = f1;
-                this.f2 = f2;
-                this.f3 = f3;
-            }
-
             public int x;
             public int y;
             public bool f1;
             public bool f2;
             public bool f3;
-        };
-        static CrystCoord ReadLineFromFile(int numOfLine, string path)
+        };*/
+        static (int, int, bool, bool, bool) ReadLineFromFile(int numOfLine, string path)
         {
             int jumperNumber;
             string[] lines = File.ReadAllLines(path);
             string[] linesSplit = lines[numOfLine].Split('\t');
             string[] jumpers = linesSplit[2].Split('F');
-            CrystCoord crystCoord;
+            (int x, int y, bool f1, bool f2, bool f3) crystCoord;
             crystCoord.x = Int32.Parse(linesSplit[0]);
             crystCoord.y = Int32.Parse(linesSplit[1]);
             crystCoord.f1 = false;
