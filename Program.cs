@@ -1,4 +1,6 @@
-﻿using System;
+﻿//Copyright (c) Kirill Belozerov, 2023
+
+using System;
 using System.IO;
 
 namespace Script
