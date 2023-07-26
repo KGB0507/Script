@@ -1,0 +1,7 @@
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\obj\Debug\Script.csproj.AssemblyReference.cache
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\obj\Debug\Script.csproj.CoreCompileInputs.cache
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\bin\Debug\Script.exe.config
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\bin\Debug\Script.exe
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\bin\Debug\Script.pdb
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\obj\Debug\Script.exe
+E:\Visual Studio source\repos\Script_Git\KGB0507\script\obj\Debug\Script.pdb
