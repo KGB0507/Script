@@ -1,4 +1,6 @@
-﻿using System;
+﻿//Copyright (c) Kirill Belozerov, 2023
+
+using System;
 using System.IO;
 
 namespace Script
@@ -7,31 +9,33 @@ namespace Script
     {
         static void Main(string[] args)
         {
-            string path = args[0];
+            string path1 = args[0];
+            string path2 = args[1];
 
+            SetCrystParameters(path2);
             for (int i = 0; i < NUMOFCOLS; i++)
             {
                 Console.WriteLine("Start column");
-                ColumnProcessing(path);
+                ColumnProcessing(path1);
                 Console.WriteLine("Finish column");
             }
         }
 
 
         //Crystal Parameters:
-        public static int NUMOFCOLS = 3;
-        public static int DISTBETWCRYST = 100;
-        public static int ALLOWEDH = 20;
-        public static int ALLOWEDW = 20;
-        public static int HBORDER1 = -H1 - ALLOWEDH - H2;
-        public static int HBORDER2 = 1200;
-        public static int WBORDER1 = 0;
-        public static int WBORDER2 = 2900;
-        public static int H1 = 150;
-        public static int H2 = 30;
-        public static int DX1 = 200;
-        public static int DX2 = 250;
-        public static int WIDTHOFCRYST = 2*DX1 + 3*DX2;
+        public static int NUMOFCOLS;
+        public static int DISTBETWCRYST;
+        public static int ALLOWEDH;
+        public static int ALLOWEDW;
+        public static int HBORDER2;
+        public static int WBORDER1;
+        public static int WBORDER2;
+        public static int H1;
+        public static int H2;
+        public static int DX1;
+        public static int DX2;
+        public static int HBORDER1;
+        public static int WIDTHOFCRYST;
         //
         enum Direction
         {
@@ -115,7 +119,31 @@ namespace Script
             public bool f2;
             public bool f3;
         };*/
-        static (int, int, bool, bool, bool) ReadLineFromFile(int numOfLine, string path)
+
+        static void SetCrystParameters(string path2)
+        {
+            string[] lines = File.ReadAllLines(path2);
+            string[] linesSplit = new string [11];
+            for (int i = 0; i < 11; i++)
+            {
+                linesSplit[i] = lines[i].Split('\t')[1];
+            }
+            NUMOFCOLS = Int32.Parse(linesSplit[0]);
+            DISTBETWCRYST = Int32.Parse(linesSplit[1]);
+            ALLOWEDH = Int32.Parse(linesSplit[2]);
+            ALLOWEDW = Int32.Parse(linesSplit[3]);
+            HBORDER2 = Int32.Parse(linesSplit[4]);
+            WBORDER1 = Int32.Parse(linesSplit[5]);
+            WBORDER2 = Int32.Parse(linesSplit[6]);
+            H1 = Int32.Parse(linesSplit[7]);
+            H2 = Int32.Parse(linesSplit[8]);
+            DX1 = Int32.Parse(linesSplit[9]);
+            DX2 = Int32.Parse(linesSplit[10]);
+            HBORDER1 = -H1 - ALLOWEDH - H2;
+            WIDTHOFCRYST = 2*DX1 + 3*DX2;
+        }
+
+        static (int, int, bool, bool, bool) ReadLineFromCoordinateFile(int numOfLine, string path)
         {
             int jumperNumber;
             string[] lines = File.ReadAllLines(path);
@@ -353,7 +381,7 @@ namespace Script
 
             (int x, int y, bool f1, bool f2, bool f3) crystCoord;
 
-            crystCoord = ReadLineFromFile(countCryst, path);
+            crystCoord = ReadLineFromCoordinateFile(countCryst, path);
             x = crystCoord.x;
             y = crystCoord.y;
             Delay(0.3);
@@ -440,7 +468,7 @@ namespace Script
                                 if (firstPassage)
                                     countCryst++;
                                 //currentCryst++;
-                                crystCoord = ReadLineFromFile(currentCryst, path);
+                                crystCoord = ReadLineFromCoordinateFile(currentCryst, path);
                                 currentCryst++;
                                 switch (countRows)
                                 {
@@ -492,7 +520,7 @@ namespace Script
                             while (y != HBORDER1)
                             {
                                 currentCryst--;
-                                crystCoord = ReadLineFromFile(currentCryst, path);
+                                crystCoord = ReadLineFromCoordinateFile(currentCryst, path);
                                 //x = crystCoord.x;
                                 //y = crystCoord.y;
                                 switch (countRows)
