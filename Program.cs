@@ -1,6 +1,6 @@
 ﻿//Copyright (c) Kirill Belozerov, 2023
 
-#define DEBUG 
+//#define DEBUG 
 
 using System;
 using System.IO;
