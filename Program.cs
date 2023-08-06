@@ -1,19 +1,36 @@
 ﻿//Copyright (c) Kirill Belozerov, 2023
 
+#define DEBUG 
+
 using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 
 namespace Script
 {
     class Program
     {
+        #if DEBUG
+        static void Main()
+        #else
         static void Main(string[] args)
+        #endif
         {
+            #if DEBUG
+            string[] args = new string[2];
+            args[0] = "CrystCoordinates.txt";
+            args[1] = "CrystParameters.txt";
+            #endif
+
             string path1 = args[0];
             string path2 = args[1];
 
+            ReadCoordinateFile(path1);
             SetCrystParameters(path2);
-            for (int i = 0; i < NUMOFCOLS; i++)
+
+            for (int k = 0; k < NUMOFCOLS; k++)
             {
                 Console.WriteLine("Start column");
                 ColumnProcessing(path1);
@@ -36,13 +53,81 @@ namespace Script
         public static int DX2;
         public static int HBORDER1;
         public static int WIDTHOFCRYST;
+
+        //structure (class) for keeping crystal's properties:
+        public class CrystCoord
+        {
+            public int x;
+            public int y;
+            public bool f1;
+            public bool f2;
+            public bool f3;
+            /*
+            public int X
+            {
+                get
+                    {
+                    return x;
+                    }
+                set
+                    {
+                    x = value;
+                    }
+            }
+            public int Y
+            {
+                get
+                    {
+                    return y;
+                    }
+                set
+                    {
+                    y = value;
+                    }
+            }
+            public bool F1
+            {
+                get
+                    {
+                    return f1;
+                    }
+                set
+                    {
+                    f1 = value;
+                    }
+            }
+            public bool F2
+            {
+                get
+                    {
+                    return f2;
+                    }
+                set
+                    {
+                    f2 = value;
+                    }
+            }
+            public bool F3
+            {
+                get
+                    {
+                    return f3;
+                    }
+                set
+                    {
+                    f3 = value;
+                    }
+            }*/
+        }
+
+
+        public static List<CrystCoord> crystCoords = new List<CrystCoord>();
         //
         enum Direction
         {
             TOP = 1,
             DOWN = 2
         };
-
 
         static void LaserOn()
         {
@@ -86,24 +171,7 @@ namespace Script
         {
             Console.WriteLine("Autofocus 10 s +- 50 mkm z");
         }
-        /*static int ReadJumpers()
-        {
-            string Designator = "1-2";
-            if (Designator == "1-2")
-                return 0;
-            else if (Designator == "1-3")
-                return 1;
-            else if (Designator == "2-3")
-                return 2;
-            else if (Designator == "1")
-                return 3;
-            else if (Designator == "2")
-                return 4;
-            else if (Designator == "3")
-                return 5;
-            else
-                return 6;
-        }*/
+
         static void Delay(double timeInSec)
         {
             Console.WriteLine($"Delay {timeInSec} s");
@@ -120,10 +188,35 @@ namespace Script
             public bool f3;
         };*/
 
-        static void SetCrystParameters(string path2)
+        
+        static IEnumerable<string> ReadAllLinesFromFile(string path)
         {
-            string[] lines = File.ReadAllLines(path2);
-            string[] linesSplit = new string [11];
+            using(TextReader reader = File.OpenText(path))
+            {
+                string line;
+                line = reader.ReadLine();
+                while(line != null)
+                {
+                    yield return line;
+                    line = reader.ReadLine();
+                }
+            }
+        }
+
+         static void SetCrystParameters(string path)
+        {
+            List<string> lines = new List<string>();
+            string temp = "";
+            int k = 0;
+
+            foreach(string line in ReadAllLinesFromFile(path))
+            {
+                lines.Add(temp);
+                lines[k] = line;
+                k++;
+            }
+
+            string[] linesSplit = new string [lines.Count];
             for (int i = 0; i < 11; i++)
             {
                 linesSplit[i] = lines[i].Split('\t')[1];
@@ -143,23 +236,26 @@ namespace Script
             WIDTHOFCRYST = 2*DX1 + 3*DX2;
         }
 
-        static (int, int, bool, bool, bool) ReadLineFromCoordinateFile(int numOfLine, string path)
+        static void ReadCoordinateFile(string path)
         {
+            int i = 0;
+            string[] linesSplit;
+            string[] jumpers;
             int jumperNumber;
-            string[] lines = File.ReadAllLines(path);
-            string[] linesSplit = lines[numOfLine].Split('\t');
-            string[] jumpers = linesSplit[2].Split('F');
-            (int x, int y, bool f1, bool f2, bool f3) crystCoord;
-            crystCoord.x = Int32.Parse(linesSplit[0]);
-            crystCoord.y = Int32.Parse(linesSplit[1]);
-            crystCoord.f1 = false;
-            crystCoord.f2 = false;
-            crystCoord.f3 = false;
-            if (jumpers[0] == "-")
+
+            foreach(string line in ReadAllLinesFromFile(path))
             {
-                crystCoord.f1 = false;
-                crystCoord.f2 = false;
-                crystCoord.f3 = false;
+                CrystCoord temp = new CrystCoord();
+                linesSplit = line.Split('\t');
+                jumpers = linesSplit[2].Split('F');
+                temp.x = Int32.Parse(linesSplit[0]);
+                temp.y = Int32.Parse(linesSplit[1]);
+
+                if (jumpers[0] == "-")
+            {
+                temp.f1 = false;
+                temp.f2 = false;
+                temp.f3 = false;
             }
             else
             {
@@ -167,9 +263,9 @@ namespace Script
                 {
                     case 1:
                         {
-                            crystCoord.f1 = false;
-                            crystCoord.f2 = false;
-                            crystCoord.f3 = false;
+                            temp.f1 = false;
+                            temp.f2 = false;
+                            temp.f3 = false;
                             break;
                         }
                     case 2:
@@ -180,33 +276,33 @@ namespace Script
                                 {
                                     case 1:
                                         {
-                                            crystCoord.f1 = true;
+                                            temp.f1 = true;
                                             break;
                                         }
                                     case 2:
                                         {
-                                            crystCoord.f2 = true;
+                                            temp.f2 = true;
                                             break;
                                         }
                                     case 3:
                                         {
-                                            crystCoord.f3 = true;
+                                            temp.f3 = true;
                                             break;
                                         }
                                     default:
                                         {
-                                            crystCoord.f1 = false;
-                                            crystCoord.f2 = false;
-                                            crystCoord.f3 = false;
+                                            temp.f1 = false;
+                                            temp.f2 = false;
+                                            temp.f3 = false;
                                             break;
                                         }
                                 }
                             }
                             else
                             {
-                                crystCoord.f1 = false;
-                                crystCoord.f2 = false;
-                                crystCoord.f3 = false;
+                                temp.f1 = false;
+                                temp.f2 = false;
+                                temp.f3 = false;
                             }
                             break;
                         }
@@ -218,33 +314,33 @@ namespace Script
                                 {
                                     case 1:
                                         {
-                                            crystCoord.f1 = true;
+                                            temp.f1 = true;
                                             break;
                                         }
                                     case 2:
                                         {
-                                            crystCoord.f2 = true;
+                                            temp.f2 = true;
                                             break;
                                         }
                                     case 3:
                                         {
-                                            crystCoord.f3 = true;
+                                            temp.f3 = true;
                                             break;
                                         }
                                     default:
                                         {
-                                            crystCoord.f1 = false;
-                                            crystCoord.f2 = false;
-                                            crystCoord.f3 = false;
+                                            temp.f1 = false;
+                                            temp.f2 = false;
+                                            temp.f3 = false;
                                             break;
                                         }
                                 }
                             }
                             else
                             {
-                                crystCoord.f1 = false;
-                                crystCoord.f2 = false;
-                                crystCoord.f3 = false;
+                                temp.f1 = false;
+                                temp.f2 = false;
+                                temp.f3 = false;
                             }
 
                             if (Int32.TryParse(jumpers[2], out jumperNumber))
@@ -253,26 +349,26 @@ namespace Script
                                 {
                                     case 2:
                                         {
-                                            crystCoord.f2 = true;
+                                            temp.f2 = true;
                                             break;
                                         }
                                     case 3:
                                         {
-                                            crystCoord.f3 = true;
+                                            temp.f3 = true;
                                             break;
                                         }
                                     default:
                                         {
-                                            crystCoord.f2 = false;
-                                            crystCoord.f3 = false;
+                                            temp.f2 = false;
+                                            temp.f3 = false;
                                             break;
                                         }
                                 }
                             }
                             else
                             {
-                                crystCoord.f2 = false;
-                                crystCoord.f3 = false;
+                                temp.f2 = false;
+                                temp.f3 = false;
                             }
                             break;
                         }
@@ -284,33 +380,33 @@ namespace Script
                                 {
                                     case 1:
                                         {
-                                            crystCoord.f1 = true;
+                                            temp.f1 = true;
                                             break;
                                         }
                                     case 2:
                                         {
-                                            crystCoord.f2 = true;
+                                            temp.f2 = true;
                                             break;
                                         }
                                     case 3:
                                         {
-                                            crystCoord.f3 = true;
+                                            temp.f3 = true;
                                             break;
                                         }
                                     default:
                                         {
-                                            crystCoord.f1 = false;
-                                            crystCoord.f2 = false;
-                                            crystCoord.f3 = false;
+                                            temp.f1 = false;
+                                            temp.f2 = false;
+                                            temp.f3 = false;
                                             break;
                                         }
                                 }
                             }
                             else
                             {
-                                crystCoord.f1 = false;
-                                crystCoord.f2 = false;
-                                crystCoord.f3 = false;
+                                temp.f1 = false;
+                                temp.f2 = false;
+                                temp.f3 = false;
                             }
 
                             if (Int32.TryParse(jumpers[2], out jumperNumber))
@@ -319,26 +415,26 @@ namespace Script
                                 {
                                     case 2:
                                         {
-                                            crystCoord.f2 = true;
+                                            temp.f2 = true;
                                             break;
                                         }
                                     case 3:
                                         {
-                                            crystCoord.f3 = true;
+                                            temp.f3 = true;
                                             break;
                                         }
                                     default:
                                         {
-                                            crystCoord.f2 = false;
-                                            crystCoord.f3 = false;
+                                            temp.f2 = false;
+                                            temp.f3 = false;
                                             break;
                                         }
                                 }
                             }
                             else
                             {
-                                crystCoord.f2 = false;
-                                crystCoord.f3 = false;
+                                temp.f2 = false;
+                                temp.f3 = false;
                             }
 
                             if (Int32.TryParse(jumpers[3], out jumperNumber))
@@ -347,25 +443,28 @@ namespace Script
                                 {
                                     case 3:
                                         {
-                                            crystCoord.f3 = true;
+                                            temp.f3 = true;
                                             break;
                                         }
                                     default:
                                         {
-                                            crystCoord.f3 = false;
+                                            temp.f3 = false;
                                             break;
                                         }
                                 }
                             }
                             else
                             {
-                                crystCoord.f3 = false;
+                                temp.f3 = false;
                             }
                             break;
                         }
                 }
             }
-            return crystCoord;
+                crystCoords.Add(temp);
+                i++;
+            }
+            //crystCoords.Reverse();
         }
 
         static void ColumnProcessing(string path)
@@ -379,9 +478,9 @@ namespace Script
             int countCryst = 0;
             int currentCryst = 0;
 
-            (int x, int y, bool f1, bool f2, bool f3) crystCoord;
+            CrystCoord crystCoord;
 
-            crystCoord = ReadLineFromCoordinateFile(countCryst, path);
+            crystCoord = crystCoords[currentCryst];
             x = crystCoord.x;
             y = crystCoord.y;
             Delay(0.3);
@@ -468,8 +567,8 @@ namespace Script
                                 if (firstPassage)
                                     countCryst++;
                                 //currentCryst++;
-                                crystCoord = ReadLineFromCoordinateFile(currentCryst, path);
                                 currentCryst++;
+                                crystCoord = crystCoords[currentCryst];
                                 switch (countRows)
                                 {
                                     case 0:
@@ -520,7 +619,7 @@ namespace Script
                             while (y != HBORDER1)
                             {
                                 currentCryst--;
-                                crystCoord = ReadLineFromCoordinateFile(currentCryst, path);
+                                crystCoord = crystCoords[currentCryst];
                                 //x = crystCoord.x;
                                 //y = crystCoord.y;
                                 switch (countRows)
