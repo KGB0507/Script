@@ -206,13 +206,12 @@ namespace Script
          static void SetCrystParameters(string path)
         {
             List<string> lines = new List<string>();
-            string temp = "";
             int k = 0;
 
             foreach(string line in ReadAllLinesFromFile(path))
             {
-                lines.Add(temp);
-                lines[k] = line;
+                lines.Add(line);
+                //lines[k] = line;
                 k++;
             }
 

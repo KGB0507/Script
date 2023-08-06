@@ -1,9 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\bin\\Debug",
-    "\\obj\\Debug"
+    ""
   ],
-  "SelectedNode": "\\CrystCoordinates.txt",
+  "SelectedNode": "\\Program.cs",
   "PreviewInSolutionExplorer": false
 }
