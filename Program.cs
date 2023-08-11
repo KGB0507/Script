@@ -39,9 +39,11 @@ namespace Script
         }
 
         //current coordinates of the laser:
-        //public static int x = 0;
-        //public static int y = 0;
-        //public static int z = 0;
+        public static int x = 0;
+        public static int y = 0;
+        public static int z = 0;
+
+        public static int countCryst = 0;
 
         //Crystal Parameters:
         public static int NUMOFCOLS;
@@ -483,15 +485,12 @@ namespace Script
 
         static void ColumnProcessing(string path)
         {
-            //current coordinates of the laser:
-            int x = 0, y = 0, z = 0;
             bool laserNecessary = false;
             bool firstPassage = false;
             //int typeOfJumpers;
             Direction direction = Direction.TOP;
             int countRows = 0;
-            int countCryst = 0;
-            int currentCryst = 0;
+            int currentCryst = countCryst;
 
             CrystCoord crystCoord;
 
@@ -506,7 +505,6 @@ namespace Script
             GoTo(x + DX1, y);
             x += DX1;
             direction = Direction.TOP;
-            countRows = 0;
             //typeOfJumpers = ReadJumpers();
             /*switch (typeOfJumpers)
             {
@@ -581,9 +579,8 @@ namespace Script
                             {
                                 if (firstPassage)
                                     countCryst++;
-                                //currentCryst++;
                                 currentCryst++;
-                                crystCoord = crystCoords[currentCryst];
+                                crystCoord = crystCoords[currentCryst - 1];
                                 switch (countRows)
                                 {
                                     case 0:
@@ -607,7 +604,7 @@ namespace Script
                                 }
                                 FromDownToTop(x, ref y, laserNecessary);
                                 laserNecessary = false;
-                                y += H1 + ALLOWEDH + H2;
+                                //y += H1 + ALLOWEDH + H2;
                                 if (y != HBORDER2)
                                 {
                                     GoTo(x, y + DISTBETWCRYST);
@@ -633,8 +630,8 @@ namespace Script
                         {
                             while (y != HBORDER1)
                             {
+                                crystCoord = crystCoords[currentCryst - 1];
                                 currentCryst--;
-                                crystCoord = crystCoords[currentCryst];
                                 //x = crystCoord.x;
                                 //y = crystCoord.y;
                                 switch (countRows)
@@ -659,7 +656,7 @@ namespace Script
                                         }
                                 }
                                 FromTopToDown(x, ref y, laserNecessary);
-                                y -= H1 + ALLOWEDH + H2;
+                                //y -= H1 + ALLOWEDH + H2;
                                 laserNecessary = false;
                                 if (y != HBORDER1)
                                 {
