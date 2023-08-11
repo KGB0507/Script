@@ -195,6 +195,7 @@ namespace Script
             Console.WriteLine($"Delay {timeInSec} s");
         }
 
+        //public (int, int, bool, bool, bool) CrystCoord;
         /*
         public struct CrystCoord
         {
@@ -479,12 +480,14 @@ namespace Script
                 crystCoords.Add(temp);
                 i++;
             }
+            //crystCoords.Reverse();
         }
 
         static void ColumnProcessing(string path)
         {
             bool laserNecessary = false;
             bool firstPassage = false;
+            //int typeOfJumpers;
             Direction direction = Direction.TOP;
             int countRows = 0;
             int currentCryst = countCryst;
@@ -502,8 +505,70 @@ namespace Script
             GoTo(x + DX1, y);
             x += DX1;
             direction = Direction.TOP;
-            firstPassage = true;
+            //typeOfJumpers = ReadJumpers();
+            /*switch (typeOfJumpers)
+            {
+                case 0:
+                    {
+                        dx1 = 76;
+                        dy1 = 10;
+                        dx2 = 115;
+                        dy2 = -10;
+                        break;
+                    }
+                case 1:
+                    {
+                        dx1 = 76;
+                        dy1 = 10;
+                        dx2 = 230;
+                        dy2 = -10;
+                        break;
+                    }
+                case 2:
+                    {
+                        dx1 = 115;
+                        dy1 = 10;
+                        dx2 = 115;
+                        dy2 = -10;
+                        break;
+                    }
+                case 3:
+                    {
+                        dx1 = 76;
+                        dy1 = 0;
+                        dx2 = 0;
+                        dy2 = 0;
+                        break;
+                    }
+                case 4:
+                    {
+                        dx1 = 0;
+                        dy1 = 0;
+                        dx2 = 115;
+                        dy2 = 0;
+                        break;
+                    }
+                case 5:
+                    {
+                        dx1 = 0;
+                        dy1 = 0;
+                        dx2 = 115;
+                        dy2 = 0;
+                        break;
+                    }
+                case 6:
+                    {
+                        dx1 = 76;
+                        dy1 = 0;
+                        dx2 = 0;
+                        dy2 = 0;
+                        break;
+                    }
+                default:
+                    break;
+            }*/
 
+            firstPassage = true;
             while (countRows != 3)
             {
                 switch (direction)
@@ -539,6 +604,7 @@ namespace Script
                                 }
                                 FromDownToTop(x, ref y, laserNecessary);
                                 laserNecessary = false;
+                                //y += H1 + ALLOWEDH + H2;
                                 if (y != HBORDER2)
                                 {
                                     GoTo(x, y + DISTBETWCRYST);
@@ -566,6 +632,8 @@ namespace Script
                             {
                                 crystCoord = crystCoords[currentCryst - 1];
                                 currentCryst--;
+                                //x = crystCoord.x;
+                                //y = crystCoord.y;
                                 switch (countRows)
                                 {
                                     case 0:
@@ -588,6 +656,7 @@ namespace Script
                                         }
                                 }
                                 FromTopToDown(x, ref y, laserNecessary);
+                                //y -= H1 + ALLOWEDH + H2;
                                 laserNecessary = false;
                                 if (y != HBORDER1)
                                 {
@@ -608,6 +677,7 @@ namespace Script
                 }
             }
             DateTime dateTime2 = DateTime.Now;
+            //Console.WriteLine(dateTime2);
             if (dateTime2.Subtract(dateTime1).TotalSeconds > 10)
                 Autofocus();
         }
