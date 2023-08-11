@@ -38,6 +38,10 @@ namespace Script
             }
         }
 
+        //current coordinates of the laser:
+        //public static int x = 0;
+        //public static int y = 0;
+        //public static int z = 0;
 
         //Crystal Parameters:
         public static int NUMOFCOLS;
@@ -137,35 +141,47 @@ namespace Script
         {
             Console.WriteLine("Laser off");
         }
-        static void GoTo(int x, int y)
+        static void GoTo(int xNew, int yNew)
         {
-            Console.WriteLine($"GoTo {x} {y}");
+            Console.WriteLine($"GoTo {xNew} {yNew}");
         }
         static void FromTopToDown(int x, ref int y, bool laserNecessary)
         {
-            GoTo(x, y - H2);
-            y -= H2;
             if (laserNecessary == true)
+            {
+                GoTo(x, y - H2);
+                y -= H2;
                 LaserOn();
-            GoTo(x, y - ALLOWEDH);
-            y -= ALLOWEDH;
-            if (laserNecessary == true)
+                GoTo(x, y - ALLOWEDH);
+                y -= ALLOWEDH;
                 LaserOff();
-            GoTo(x, y - H1);
-            y -= H1;
+                GoTo(x, y - H1);
+                y -= H1;
+            }
+            else
+            {
+                GoTo(x, y - H2 - ALLOWEDH - H1);
+                y-= H2 + ALLOWEDH + H1;
+            }      
         }
         static void FromDownToTop(int x, ref int y, bool laserNecessary)
         {
-            GoTo(x, y + H1);
-            y += H1;
             if (laserNecessary == true)
-                LaserOn();
-            GoTo(x, y + ALLOWEDH);
-            y += ALLOWEDH;
-            if (laserNecessary == true)
-                LaserOff();
-            GoTo(x, y + H2);
-            y += H2;
+            {
+                 GoTo(x, y + H1);
+                 y += H1;
+                 LaserOn();
+                 GoTo(x, y + ALLOWEDH);
+                 y += ALLOWEDH;
+                 LaserOff();
+                 GoTo(x, y + H2);
+                 y += H2;
+            }
+            else
+            {
+                GoTo(x, y + H1 + ALLOWEDH + H2);
+                y += H1 + ALLOWEDH + H2;
+            }      
         }
         static void Autofocus()
         {
@@ -191,7 +207,7 @@ namespace Script
         
         static IEnumerable<string> ReadAllLinesFromFile(string path)
         {
-            using(TextReader reader = File.OpenText(path))
+            using(TextReader reader = File.OpenText(path))//creating a stream for reading file
             {
                 string line;
                 line = reader.ReadLine();
@@ -211,7 +227,6 @@ namespace Script
             foreach(string line in ReadAllLinesFromFile(path))
             {
                 lines.Add(line);
-                //lines[k] = line;
                 k++;
             }
 
@@ -468,6 +483,7 @@ namespace Script
 
         static void ColumnProcessing(string path)
         {
+            //current coordinates of the laser:
             int x = 0, y = 0, z = 0;
             bool laserNecessary = false;
             bool firstPassage = false;
@@ -591,7 +607,7 @@ namespace Script
                                 }
                                 FromDownToTop(x, ref y, laserNecessary);
                                 laserNecessary = false;
-                                //y += H1 + ALLOWEDH + H2;
+                                y += H1 + ALLOWEDH + H2;
                                 if (y != HBORDER2)
                                 {
                                     GoTo(x, y + DISTBETWCRYST);
@@ -643,7 +659,7 @@ namespace Script
                                         }
                                 }
                                 FromTopToDown(x, ref y, laserNecessary);
-                                //y -= H1 + ALLOWEDH + H2;
+                                y -= H1 + ALLOWEDH + H2;
                                 laserNecessary = false;
                                 if (y != HBORDER1)
                                 {
@@ -653,7 +669,7 @@ namespace Script
                                 else
                                 {
                                     countRows++;
-                                    GoTo(x + DX2, y);
+                                    GoTo(x + DX1, y);
                                     x += DX2;
                                     direction = Direction.TOP;
                                     break;
